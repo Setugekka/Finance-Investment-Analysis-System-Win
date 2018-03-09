@@ -1,5 +1,6 @@
 # coding=utf-8
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import AnonymousUserMixin, UserMixin
 
@@ -23,26 +24,8 @@ roles = db.Table(
 class strategy(db.Model):
     __bind_key__ = 'quant'
     __tablename__ = 'strategy'
-    id = db.Column(db.Integer, primary_key=True)
-    name_en = db.Column(db.String(255))
-    name_cn = db.Column(db.String(255))
-    type = db.Column(db.String(255))
-    description = db.Column(db.String(255))
-    sample = db.Column(db.BLOB)
-
-
-class subscriber(db.Model):
-    __bind_key__ = 'quant'
-    __tablename__ = 'subscriber'
-    identifier = db.Column(db.Integer, primary_key=True)
-    user = db.Column(db.String(20))
-    strategy_id = db.Column(db.Integer, db.ForeignKey('strategy.id'), )
-    strategy_name = db.Column(db.String(255))
-    parameter = db.Column(db.BLOB)
-    status = db.Column(db.String(255))
-    build_date = db.Column(db.DateTime)
-    threadpid = db.Column(db.Integer)
-    threadname = db.Column(db.String(255))
+    id=db.Column(db.String(255), primary_key=True)
+    base64=db.Column(db.String(255))
 
 
 class users_roles(db.Model):
@@ -85,19 +68,6 @@ class follows(db.Model):
     follower = db.Column(db.String(20), primary_key=True)
     followed = db.Column(db.String(20), primary_key=True)
 
-
-class comment_reply(db.Model):
-    __bind_key__ = 'my_message'
-    __tablename__ = 'comment_reply'
-    reply_id = db.Column(db.Integer, primary_key=True)
-    post_id = db.Column(db.Integer)
-    comment_id = db.Column(db.Integer)
-    replier = db.Column(db.String(20))
-    replied = db.Column(db.String(20))
-    reply_text = db.Column(db.Text)
-    reply_time = db.Column(db.String(45))
-
-
 # 用户个人消息
 class personal_information(db.Model):
     __bind_key__ = 'my_message'
@@ -110,23 +80,19 @@ class personal_information(db.Model):
     time = db.Column(db.DateTime)
     state = db.Column(db.String(20))
 
-
 # 权限常量
 class Permission:
     administrator = 1
     trader = 2
     visitor = 3
 
-
-# 用户余额
+#用户余额
 class user_money(db.Model):
     __bind_key__ = 'users_info'
     __tablename__ = 'user_money'
     user_name = db.Column(db.String(20), db.ForeignKey('users.username'), primary_key=True)
     user_money = db.Column(db.Integer())
-
-
-# 会员信息
+#会员信息
 class member_information(db.Model):
     __bind_key__ = 'users_info'
     __tablename__ = 'member_information'
@@ -626,7 +592,7 @@ class company_list(db.Model):
     Name = db.Column(db.String(80))
     IPO_Date = db.Column(db.DateTime)
     Up_Date = db.Column(db.DateTime)
-
+    Wind_Code = db.Column(db.String(20))
 
 class cns_stock_basics(db.Model):
     __bind_key__ = 'cns_stock'
@@ -658,7 +624,7 @@ class cns_balance_sheet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     stock_code = db.Column(db.String(20))
     sec_name = db.Column(db.String(80))
-    the_data = db.Column(db.String(80))
+    the_date = db.Column(db.String(80))
     monetary_cap = db.Column(db.Numeric(20, 3))
     tradable_fin_assets = db.Column(db.Numeric(20, 3))
     notes_rcv = db.Column(db.Numeric(20, 3))
@@ -710,3 +676,106 @@ class cns_balance_sheet(db.Model):
     tsy_stk = db.Column(db.Numeric(20, 3))
     surplus_rsrv = db.Column(db.Numeric(20, 3))
     undistributed_profit = db.Column(db.Numeric(20, 3))
+    tot_cur_assets = db.Column(db.Numeric(20, 3))
+    tot_non_cur_assets= db.Column(db.Numeric(20, 3))
+    tot_cur_liab= db.Column(db.Numeric(20, 3))
+    tot_non_cur_liab= db.Column(db.Numeric(20, 3))
+    tot_liab= db.Column(db.Numeric(20, 3))
+    tot_equity= db.Column(db.Numeric(20, 3))
+
+class cns_income_statement(db.Model):
+    __bind_key__ = 'cns_stock'
+    __tablename__ = 'cns_income_statement'
+    id = db.Column(db.Integer, primary_key=True)
+    stock_code = db.Column(db.String(20))
+    sec_name = db.Column(db.String(80))
+    the_date = db.Column(db.String(80))
+    oper_rev = db.Column(db.Numeric(20, 3))
+    oper_cost = db.Column(db.Numeric(20, 3))
+    taxes_surcharges_ops = db.Column(db.Numeric(20, 3))
+    selling_dist_exp = db.Column(db.Numeric(20, 3))
+    gerl_admin_exp = db.Column(db.Numeric(20, 3))
+    fin_exp_is = db.Column(db.Numeric(20, 3))
+    impair_loss_assets = db.Column(db.Numeric(20, 3))
+    net_gain_chg_fv = db.Column(db.Numeric(20, 3))
+    net_invest_inc = db.Column(db.Numeric(20, 3))
+    opprofit = db.Column(db.Numeric(20, 3))
+    non_oper_rev = db.Column(db.Numeric(20, 3))
+    non_oper_exp = db.Column(db.Numeric(20, 3))
+    tax = db.Column(db.Numeric(20, 3))
+    tot_profit = db.Column(db.Numeric(20, 3))
+    net_profit_is = db.Column(db.Numeric(20, 3))
+    eps_basic_is = db.Column(db.Numeric(20, 3))
+    eps_diluted_is = db.Column(db.Numeric(20, 3))
+
+class cns_statement_of_cash_flows(db.Model):
+    __bind_key__ = 'cns_stock'
+    __tablename__ = 'cns_statement_of_cash_flows'
+    id = db.Column(db.Integer, primary_key=True)
+    stock_code = db.Column(db.String(20))
+    sec_name = db.Column(db.String(80))
+    the_date = db.Column(db.String(80))
+    cash_recp_sg_and_rs = db.Column(db.Numeric(20, 3))
+    recp_tax_rends = db.Column(db.Numeric(20, 3))
+    other_cash_recp_ral_oper_act= db.Column(db.Numeric(20, 3))
+    stot_cash_inflows_oper_act = db.Column(db.Numeric(20, 3))
+    cash_pay_goods_purch_serv_rec = db.Column(db.Numeric(20, 3))
+    cash_pay_beh_empl = db.Column(db.Numeric(20, 3))
+    pay_all_typ_tax = db.Column(db.Numeric(20, 3))
+    other_cash_pay_ral_oper_act = db.Column(db.Numeric(20, 3))
+    stot_cash_outflows_oper_act = db.Column(db.Numeric(20, 3))
+    net_cash_flows_oper_act = db.Column(db.Numeric(20, 3))
+    cash_recp_disp_withdrwl_invest = db.Column(db.Numeric(20, 3))
+    cash_recp_return_invest = db.Column(db.Numeric(20, 3))
+    net_cash_recp_disp_fiolta = db.Column(db.Numeric(20, 3))
+    other_cash_recp_ral_inv_act = db.Column(db.Numeric(20, 3))
+    stot_cash_inflows_inv_act = db.Column(db.Numeric(20, 3))
+    cash_pay_acq_const_fiolta = db.Column(db.Numeric(20, 3))
+    cash_paid_invest = db.Column(db.Numeric(20, 3))
+    other_cash_pay_ral_inv_act = db.Column(db.Numeric(20, 3))
+    stot_cash_outflows_inv_act = db.Column(db.Numeric(20, 3))
+    net_cash_flows_inv_act = db.Column(db.Numeric(20, 3))
+    cash_recp_cap_contrib = db.Column(db.Numeric(20, 3))
+    cash_recp_borrow = db.Column(db.Numeric(20, 3))
+    other_cash_recp_ral_fnc_act = db.Column(db.Numeric(20, 3))
+    stot_cash_inflows_fnc_act = db.Column(db.Numeric(20, 3))
+    cash_prepay_amt_borr = db.Column(db.Numeric(20, 3))
+    cash_pay_dist_dpcp_int_exp = db.Column(db.Numeric(20, 3))
+    other_cash_pay_ral_fnc_act = db.Column(db.Numeric(20, 3))
+    stot_cash_outflows_fnc_act = db.Column(db.Numeric(20, 3))
+    net_cash_flows_fnc_act = db.Column(db.Numeric(20, 3))
+    eff_fx_flu_cash = db.Column(db.Numeric(20, 3))
+    net_incr_cash_cash_equ_dm = db.Column(db.Numeric(20, 3))
+    cash_cash_equ_beg_period = db.Column(db.Numeric(20, 3))
+    cash_cash_equ_end_period = db.Column(db.Numeric(20, 3))
+    net_profit_cs = db.Column(db.Numeric(20, 3))
+    prov_depr_assets = db.Column(db.Numeric(20, 3))
+    depr_fa_coga_dpba = db.Column(db.Numeric(20, 3))
+    amort_intang_assets = db.Column(db.Numeric(20, 3))
+    amort_lt_deferred_exp = db.Column(db.Numeric(20, 3))
+    loss_disp_fiolta = db.Column(db.Numeric(20, 3))
+    loss_scr_fa	 = db.Column(db.Numeric(20, 3))
+    loss_fv_chg = db.Column(db.Numeric(20, 3))
+    fin_exp_cs = db.Column(db.Numeric(20, 3))
+    invest_loss = db.Column(db.Numeric(20, 3))
+    decr_deferred_inc_tax_assets = db.Column(db.Numeric(20, 3))
+    incr_deferred_inc_tax_liab = db.Column(db.Numeric(20, 3))
+    decr_inventories = db.Column(db.Numeric(20, 3))
+    decr_oper_payable = db.Column(db.Numeric(20, 3))
+    incr_oper_payable = db.Column(db.Numeric(20, 3))
+    others = db.Column(db.Numeric(20, 3))
+    im_net_cash_flows_oper_act = db.Column(db.Numeric(20, 3))
+    conv_debt_into_cap = db.Column(db.Numeric(20, 3))
+    conv_corp_bonds_due_within_1y= db.Column(db.Numeric(20, 3))
+    fa_fnc_leases = db.Column(db.Numeric(20, 3))
+    end_bal_cash = db.Column(db.Numeric(20, 3))
+    beg_bal_cash = db.Column(db.Numeric(20, 3))
+    end_bal_cash_equ = db.Column(db.Numeric(20, 3))
+    beg_bal_cash_equ = db.Column(db.Numeric(20, 3))
+    net_incr_cash_cash_equ_im = db.Column(db.Numeric(20, 3))
+# 用于存储各类表格更新时间
+class table_update_time(db.Model):
+    __bind_key__ = 'cns_stock'
+    __tablename__ = 'table_update_time'
+    table_name = db.Column(db.String(20), primary_key=True)
+    last_update_time = db.Column(db.String(80))
